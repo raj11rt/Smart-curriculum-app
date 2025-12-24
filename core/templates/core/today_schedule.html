@@ -1,0 +1,26 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<h2>Today's Schedule ({{ day }})</h2>
+
+{% if entries %}
+<table>
+    <tr>
+        <th>Period</th>
+        <th>Subject</th>
+        <th>Teacher</th>
+        <th>Room</th>
+    </tr>
+    {% for entry in entries %}
+    <tr>
+        <td>{{ entry.period }}</td>
+        <td>{{ entry.subject }}</td>
+        <td>{{ entry.teacher.get_full_name|default:entry.teacher.username }}</td>
+        <td>{{ entry.room }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No classes scheduled for today.</p>
+{% endif %}
+{% endblock %}
