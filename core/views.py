@@ -1,6 +1,10 @@
 import datetime
+
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.shortcuts import render
-from .models import TimetableEntry
+from django.views.decorators.http import require_POST
+
+from .models import TimetableEntry, Student, Attendance
 
 
 def home(request):
@@ -19,19 +23,12 @@ def today_schedule(request):
         6: "Sunday",
     }
     today_name = weekday_map[datetime.date.today().weekday()]
-    entries = (
-        TimetableEntry.objects.filter(day=today_name)
-        .order_by("period")
-    )
+    entries = TimetableEntry.objects.filter(day=today_name).order_by("period")
     context = {
         "day": today_name,
         "entries": entries,
     }
     return render(request, "core/today_schedule.html", context)
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.views.decorators.http import require_POST
-from .models import Student, TimetableEntry, Attendance
-import datetime
 
 
 @require_POST
@@ -62,11 +59,12 @@ def mark_attendance(request):
         defaults={"method": method, "present": True},
     )
 
-    if created:
-        message = "Attendance created successfully."
-    else:
-        message = "Attendance updated successfully."
-
-    return HttpResponse(
-        f"{message} Student: {student.roll_no}, Class: {timetable_entry.subject}, Date: {date}."
+    return JsonResponse(
+        {
+            "status": "created" if created else "updated",
+            "student_roll_no": student.roll_no,
+            "subject": timetable_entry.subject,
+            "date": str(date),
+            "method": method,
+        }
     )

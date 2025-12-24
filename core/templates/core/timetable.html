@@ -22,17 +22,6 @@
     </tr>
     {% endfor %}
 </table>
-<hr>
-<h3>Test Mark Attendance (Manual)</h3>
-<form method="post" action="{% url 'mark_attendance' %}">
-    {% csrf_token %}
-    <label>Student ID: <input type="number" name="student_id"></label><br>
-    <label>Timetable ID: <input type="number" name="timetable_id"></label><br>
-    <label>Date (YYYY-MM-DD): <input type="text" name="date"></label><br>
-    <label>Method: <input type="text" name="method" value="QR"></label><br>
-    <button type="submit">Mark Present</button>
-</form>
-
 {% else %}
 <p>No timetable entries yet.</p>
 {% endif %}
