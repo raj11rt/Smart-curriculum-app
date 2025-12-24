@@ -1,6 +1,7 @@
-from django.http import HttpResponse
+from django.shortcuts import render
+from .models import TimetableEntry
 
 
 def home(request):
-    return HttpResponse("Smart Curriculum App: Backend is working!")
-
+    entries = TimetableEntry.objects.all().order_by("day", "period")
+    return render(request, "core/timetable.html", {"entries": entries})
