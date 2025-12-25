@@ -73,9 +73,8 @@ def mark_attendance(request):
 def class_qr(request, timetable_id):
     timetable_entry = get_object_or_404(TimetableEntry, id=timetable_id)
 
-    # For now, local URL; later replace with real domain
-    base_url = request.build_absolute_uri("/")[:-1]  # e.g. http://127.0.0.1:8000
-    data = f"{base_url}/mark-attendance/?timetable_id={timetable_entry.id}&date={datetime.date.today()}"
+    base_url = request.build_absolute_uri("/")[:-1]
+    data = f"{base_url}/mark-attendance-demo/?timetable_id={timetable_entry.id}&date={datetime.date.today()}"
 
     qr = qrcode.QRCode(box_size=10, border=4)
     qr.add_data(data)
@@ -87,3 +86,52 @@ def class_qr(request, timetable_id):
     buffer.seek(0)
 
     return HttpResponse(buffer.getvalue(), content_type="image/png")
+
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+# (csrf_exempt already from django if not, import it)
+
+@csrf_exempt
+def mark_attendance_demo_get(request):
+    """
+    TEMP demo: mark attendance via GET for a fixed student (id=1).
+    Replace later with proper auth/mobile app.
+    """
+    if request.method != "GET":
+        return HttpResponseBadRequest("Use GET only for demo")
+
+    student_id = request.GET.get("student_id", "1")  # default demo student
+    timetable_id = request.GET.get("timetable_id")
+    date_str = request.GET.get("date")
+
+    if not (student_id and timetable_id and date_str):
+        return HttpResponseBadRequest("Missing required parameters")
+
+    try:
+        date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return HttpResponseBadRequest("Invalid date format, expected YYYY-MM-DD")
+
+    try:
+        student = Student.objects.get(id=student_id)
+        timetable_entry = TimetableEntry.objects.get(id=timetable_id)
+    except (Student.DoesNotExist, TimetableEntry.DoesNotExist):
+        return HttpResponseBadRequest("Student or timetable entry not found")
+
+    attendance, created = Attendance.objects.update_or_create(
+        student=student,
+        timetable_entry=timetable_entry,
+        date=date,
+        defaults={"method": "QR", "present": True},
+    )
+
+    return JsonResponse(
+        {
+            "status": "created" if created else "updated",
+            "student_roll_no": student.roll_no,
+            "subject": timetable_entry.subject,
+            "date": str(date),
+            "method": "QR",
+            "demo": True,
+        }
+    )
