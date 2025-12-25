@@ -1,7 +1,9 @@
 import datetime
+import io
+import qrcode
 
-from django.http import JsonResponse, HttpResponseBadRequest
-from django.shortcuts import render
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 
 from .models import TimetableEntry, Student, Attendance
@@ -68,3 +70,20 @@ def mark_attendance(request):
             "method": method,
         }
     )
+def class_qr(request, timetable_id):
+    timetable_entry = get_object_or_404(TimetableEntry, id=timetable_id)
+
+    # For now, local URL; later replace with real domain
+    base_url = request.build_absolute_uri("/")[:-1]  # e.g. http://127.0.0.1:8000
+    data = f"{base_url}/mark-attendance/?timetable_id={timetable_entry.id}&date={datetime.date.today()}"
+
+    qr = qrcode.QRCode(box_size=10, border=4)
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type="image/png")
