@@ -1,6 +1,9 @@
 {% extends "core/base.html" %}
 
 {% block content %}
-<h2>Full Timetable (Admin/Test View)</h2>
+<h2>Student Dashboard</h2>
+<p>Welcome, {{ request.user.get_full_name|default:request.user.username }}!</p>
+
+<h3>Timetable</h3>
 {% include "core/timetable_table.html" with entries=entries %}
 {% endblock %}

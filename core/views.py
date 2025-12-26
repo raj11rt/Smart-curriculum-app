@@ -5,13 +5,17 @@ import qrcode
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
-
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from .models import TimetableEntry, Student, Attendance
 
 
+@login_required
 def home(request):
-    entries = TimetableEntry.objects.all().order_by("day", "period")
-    return render(request, "core/timetable.html", {"entries": entries})
+    if request.user.is_staff:
+        return redirect("teacher_dashboard")
+    else:
+        return redirect("student_dashboard")
 
 
 def today_schedule(request):
@@ -135,3 +139,14 @@ def mark_attendance_demo_get(request):
             "demo": True,
         }
     )
+@login_required
+def teacher_dashboard(request):
+    classes = TimetableEntry.objects.filter(teacher=request.user).order_by("day", "period")
+    return render(request, "core/teacher_dashboard.html", {"classes": classes})
+
+
+@login_required
+def student_dashboard(request):
+    # very simple: show full timetable for now
+    entries = TimetableEntry.objects.all().order_by("day", "period")
+    return render(request, "core/student_dashboard.html", {"entries": entries})

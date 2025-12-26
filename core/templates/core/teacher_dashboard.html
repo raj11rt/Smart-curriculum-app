@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<h2>Teacher Dashboard</h2>
+<p>Welcome, {{ request.user.get_full_name|default:request.user.username }}!</p>
+
+<h3>Your Classes</h3>
+{% if classes %}
+<table>
+    <tr>
+        <th>Day</th>
+        <th>Period</th>
+        <th>Subject</th>
+        <th>Room</th>
+        <th>QR</th>
+    </tr>
+    {% for c in classes %}
+    <tr>
+        <td>{{ c.day }}</td>
+        <td>{{ c.period }}</td>
+        <td>{{ c.subject }}</td>
+        <td>{{ c.room }}</td>
+        <td><a href="{% url 'class_qr' c.id %}" target="_blank">Show QR</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No classes assigned to you yet.</p>
+{% endif %}
+{% endblock %}
