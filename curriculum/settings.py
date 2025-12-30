@@ -55,7 +55,7 @@ ROOT_URLCONF = 'curriculum.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # ← ADD THIS
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -122,3 +122,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# After login, redirect to HOME instead of /accounts/profile/
+LOGIN_REDIRECT_URL = '/'  # or '/student/' or '/admin/'
+LOGOUT_REDIRECT_URL = '/'

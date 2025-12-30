@@ -168,36 +168,37 @@ def student_dashboard(request):
             "entries": [],
             "subject_stats": [],
             "overall_percent": 0,
-            "error": "No student profile found. Contact admin."
+            "suggestions": [],
         })
     
     entries = TimetableEntry.objects.all().order_by("day", "period")
     subject_stats = student.attendance_by_subject()
     overall_percent = student.overall_attendance_percent()
     
+    # SMART SUGGESTIONS LOGIC
     suggestions = []
     low_attendance_subjects = [s for s in subject_stats if s['percent'] < 75]
     
     if low_attendance_subjects:
-        low_sub = low_attendance_subjects[0]  # worst subject first
+        low_sub = low_attendance_subjects[0]
         suggestions.append({
             'icon': '📚',
             'subject': low_sub['subject'],
             'text': f'Review {low_sub["subject"]} (only {low_sub["percent"]}% attendance)',
         })
     
-    upcoming_classes = entries[:3]  # next 3 classes
+    upcoming_classes = entries[:3]
     for cls in upcoming_classes:
         suggestions.append({
             'icon': '🎯',
             'subject': cls.subject,
-            'text': f'Practice 2 problems for {cls.subject} class',
+            'text': f'Practice 2 LeetCode problems before next {cls.subject} class',
         })
-
     context = {
         "entries": entries,
         "subject_stats": subject_stats,
         "overall_percent": overall_percent,
+        "suggestions": suggestions,
     }
     return render(request, "core/student_dashboard.html", context)
 

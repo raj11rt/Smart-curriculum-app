@@ -5,44 +5,31 @@
 <p>Welcome, {{ request.user.get_full_name|default:request.user.username }}!</p>
 
 <h3>Timetable</h3>
+<table>
+<!-- timetable content -->
+</table>
+
 <h3>My Attendance</h3>
+<!-- attendance content -->
+
 <h3>Free Periods</h3>
 {% if suggestions %}
-<ul>
   {% for s in suggestions %}
-  <li>{{ s.icon }} <strong>{{ s.subject }}</strong>: {{ s.text }}</li>
+  <div class="suggestion">
+    {{ s.icon }} <strong>{{ s.subject }}</strong>: {{ s.text }}
+  </div>
   {% endfor %}
-</ul>
 {% else %}
-<p>No suggestions yet.</p>
-{% endif %}
-<p>Suggestions for gaps in your timetable:</p>
-<ul>
-  <li>📚 <strong>DSA (50% attendance)</strong>: Review binary trees (low attendance subject)</li>
-  <li>🎯 Practice 2 LeetCode problems before next DBMS class</li>
-  <li>📖 Read OS chapter 3 (process scheduling)</li>
-</ul>
-<p>Overall: {{ overall_percent }}%</p>
-{% if subject_stats %}
-<table>
-  <tr>
-    <th>Subject</th>
-    <th>Present</th>
-    <th>Total</th>
-    <th>Percent</th>
-  </tr>
-  {% for row in subject_stats %}
-  <tr>
-    <td>{{ row.subject }}</td>
-    <td>{{ row.present }}</td>
-    <td>{{ row.total }}</td>
-    <td>{{ row.percent }}%</td>
-  </tr>
-  {% endfor %}
-</table>
-{% else %}
-<p>No attendance records yet.</p>
+  <p>No suggestions yet.</p>
 {% endif %}
 
-{% include "core/timetable_table.html" with entries=entries %}
+<p>Overall: {{ overall_percent }}%</p>
+
+<h3>Subject Stats</h3>
+<table>
+  <tr><th>Subject</th><th>Present</th><th>Total</th><th>Percent</th></tr>
+  {% for row in subject_stats %}
+  <tr><td>{{ row.subject }}</td><td>{{ row.present }}</td><td>{{ row.total }}</td><td>{{ row.percent }}%</td></tr>
+  {% endfor %}
+</table>
 {% endblock %}

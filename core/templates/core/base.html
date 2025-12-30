@@ -2,24 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Smart Curriculum App</title>
+    <title>{% block title %}Smart Curriculum App{% endblock %}</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { font-size: 24px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #f5f5f5; }
-        nav { background: #2c3e50; color: white; padding: 10px; }
-        nav a { color: white; margin: 0 10px; text-decoration: none; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background: #f2f2f2; }
-        h3 { color: #2c3e50; }
-        li { margin: 5px 0; }  
+      body { font-family: Arial, sans-serif; margin: 20px; }
+      table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+      th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+      th { background: #165696; color: rgb(23, 16, 16); font-weight: bold; }
+      tr:nth-child(even) { background: #f8f9fa; }
+      nav {
+        background: #2c3e50 !important;  /* Dark blue background */
+        padding: 8px 16px;
+      }
+
+    nav a {
+      color: white !important;         /* WHITE TEXT */
+      text-decoration: none;
+      margin-right: 20px;
+      font-weight: 500;
+    }
+
+    nav a:hover {
+      color: #3498db !important;       /* Blue hover */
+    }
+
+    nav span {
+      color: #ecf0f1 !important;       /* White "Logged in" text */
+    }
+
+      h3 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+      .suggestion { background: #e8f5e8; padding: 10px; border-left: 4px solid #27ae60; margin: 10px 0; }
     </style>
 </head>
 <body>
-<nav style="background:#eee; padding:8px 16px;">
+    <h1>Smart Curriculum App</h1>
+  <nav style="background: #2c3e50 !important;">
   <a href="{% url 'home' %}">Home</a>
 
   {% if request.user.is_authenticated %}
