@@ -5,6 +5,27 @@
 <p>Welcome, {{ request.user.get_full_name|default:request.user.username }}!</p>
 
 <h3>Your Classes</h3>
+<h3>Recent Attendance</h3>
+{% if recent_attendance %}
+<table>
+  <tr>
+    <th>Time</th>
+    <th>Class</th>
+    <th>Student</th>
+    <th>Status</th>
+  </tr>
+  {% for a in recent_attendance %}
+  <tr>
+    <td>{{ a.marked_at|date:"M d H:i" }}</td>
+    <td>{{ a.timetable_entry.subject }} ({{ a.timetable_entry.day }} P{{ a.timetable_entry.period }})</td>
+    <td>{{ a.student.name }}</td>
+    <td>{{ a.status }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No attendance recorded in the last 7 days.</p>
+{% endif %}
 {% if classes %}
 <table>
     <tr>
@@ -20,7 +41,11 @@
         <td>{{ c.period }}</td>
         <td>{{ c.subject }}</td>
         <td>{{ c.room }}</td>
-        <td><a href="{% url 'class_qr' c.id %}" target="_blank">Show QR</a></td>
+        <td><a href="{% url 'class_qr' c.id %}" target="_blank">Show QR</a><td>
+  <a href="{% url 'class_qr' c.id %}" target="_blank">Show QR</a> |
+  <a href="{% url 'export_class_attendance' c.id %}">Export CSV</a>
+</td>
+    </td>
     </tr>
     {% endfor %}
 </table>

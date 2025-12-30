@@ -10,4 +10,10 @@ urlpatterns = [
 
     path("teacher/", views.teacher_dashboard, name="teacher_dashboard"),
     path("student/", views.student_dashboard, name="student_dashboard"),
+    path(
+    "class/<int:timetable_id>/attendance/export/",
+    views.export_class_attendance,
+    name="export_class_attendance",
+),
+
 ]

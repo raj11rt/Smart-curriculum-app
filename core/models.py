@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Count, Q
 
 
 class Student(models.Model):
@@ -10,7 +11,40 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.roll_no} - {self.user.get_full_name() or self.user.username}"
+    def attendance_by_subject(self):
+        from .models import Attendance, TimetableEntry
+    
+        qs = Attendance.objects.filter(student=self)
+        data = (
+            qs.values("timetable_entry__subject")
+                .annotate(
+                    total=Count("id"),
+                    presents=Count("id", filter=Q(present=True)),  # use present=True
+                )
+        )
 
+        result = []
+        for row in data:
+            subject = row["timetable_entry__subject"]
+            total = row["total"]
+            present = row["presents"]
+            percent = round((present / total) * 100) if total else 0
+            result.append(
+                {"subject": subject, "total": total, "present": present, "percent": percent}
+            )
+        return result
+    def overall_attendance_percent(self):
+        from .models import Attendance
+        from django.db.models import Count, Q
+    
+        qs = Attendance.objects.filter(student=self)
+        stats = qs.aggregate(
+            total=Count("id"),
+            presents=Count("id", filter=Q(present=True)),  # use present=True
+        )
+        total = stats["total"] or 0
+        presents = stats["presents"] or 0
+        return round((presents / total) * 100) if total else 0
 
 class TimetableEntry(models.Model):
     day = models.CharField(max_length=10)  # e.g. Monday
@@ -45,4 +79,5 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.student.roll_no} - {self.timetable_entry} - {self.date}"
+
 

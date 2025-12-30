@@ -139,14 +139,97 @@ def mark_attendance_demo_get(request):
             "demo": True,
         }
     )
+from django.utils import timezone
+from datetime import timedelta
+
 @login_required
 def teacher_dashboard(request):
-    classes = TimetableEntry.objects.filter(teacher=request.user).order_by("day", "period")
-    return render(request, "core/teacher_dashboard.html", {"classes": classes})
+    classes = TimetableEntry.objects.filter(
+        teacher=request.user
+    ).order_by("day", "period")
 
+    recent_attendance = Attendance.objects.filter(
+        timetable_entry__teacher=request.user,
+        marked_at__gte=timezone.now() - timedelta(days=7),  # <— change here
+    ).select_related("student", "timetable_entry").order_by("-marked_at")[:20]
+
+    context = {
+        "classes": classes,
+        "recent_attendance": recent_attendance,
+    }
+    return render(request, "core/teacher_dashboard.html", context)
 
 @login_required
 def student_dashboard(request):
-    # very simple: show full timetable for now
+    try:
+        student = Student.objects.get(user=request.user)
+    except Student.DoesNotExist:
+        return render(request, "core/student_dashboard.html", {
+            "entries": [],
+            "subject_stats": [],
+            "overall_percent": 0,
+            "error": "No student profile found. Contact admin."
+        })
+    
     entries = TimetableEntry.objects.all().order_by("day", "period")
-    return render(request, "core/student_dashboard.html", {"entries": entries})
+    subject_stats = student.attendance_by_subject()
+    overall_percent = student.overall_attendance_percent()
+    
+    suggestions = []
+    low_attendance_subjects = [s for s in subject_stats if s['percent'] < 75]
+    
+    if low_attendance_subjects:
+        low_sub = low_attendance_subjects[0]  # worst subject first
+        suggestions.append({
+            'icon': '📚',
+            'subject': low_sub['subject'],
+            'text': f'Review {low_sub["subject"]} (only {low_sub["percent"]}% attendance)',
+        })
+    
+    upcoming_classes = entries[:3]  # next 3 classes
+    for cls in upcoming_classes:
+        suggestions.append({
+            'icon': '🎯',
+            'subject': cls.subject,
+            'text': f'Practice 2 problems for {cls.subject} class',
+        })
+
+    context = {
+        "entries": entries,
+        "subject_stats": subject_stats,
+        "overall_percent": overall_percent,
+    }
+    return render(request, "core/student_dashboard.html", context)
+
+import csv
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def export_class_attendance(request, timetable_id):
+    from django.shortcuts import get_object_or_404
+    timetable = get_object_or_404(TimetableEntry, id=timetable_id, teacher=request.user)
+
+    records = (
+        Attendance.objects
+        .filter(timetable_entry=timetable)
+        .select_related("student")
+        .order_by("student__roll_no", "marked_at")  # use marked_at
+    )
+
+    response = HttpResponse(content_type="text/csv")
+    filename = f"attendance_{timetable.subject}_{timetable.day}_P{timetable.period}.csv"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow(["Roll No", "Student", "Date & Time", "Present"])  # use "Present"
+    
+    for a in records:
+        writer.writerow([
+            a.student.roll_no,
+            a.student.user.get_full_name() or a.student.user.username,
+            a.marked_at.strftime("%Y-%m-%d %H:%M"),  # use marked_at
+            "Yes" if a.present else "No",  # use present boolean
+        ])
+
+    return response
